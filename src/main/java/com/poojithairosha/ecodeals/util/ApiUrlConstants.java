@@ -15,4 +15,10 @@ public interface ApiUrlConstants {
         String USER_ID = "/{userId}";
     }
 
+    interface AuthUrlConstants {
+        String AUTH = "/auth";
+        String LOGIN = "/login";
+        String REGISTER = "/register";
+    }
+
 }
