@@ -25,12 +25,18 @@ public class AuthController {
 
     @PostMapping(LOGIN)
     public ResponseEntity<AuthRespDto> login(@RequestBody AuthLoginDto loginDto) {
-        return ResponseEntity.ok(authService.login(loginDto));
+        log.info("Login attempt with email: {}", loginDto.email());
+        AuthRespDto response = authService.login(loginDto);
+        log.info("Login successful for email: {}", loginDto.email());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping(REGISTER)
     public ResponseEntity<AuthRespDto> register(@RequestBody UserReqDto registerDto) {
-        return ResponseEntity.ok(authService.register(registerDto));
+        log.info("Registration attempt for email: {}", registerDto.email());
+        AuthRespDto response = authService.register(registerDto);
+        log.info("Registration successful for email: {}", registerDto.email());
+        return ResponseEntity.ok(response);
     }
 
 }

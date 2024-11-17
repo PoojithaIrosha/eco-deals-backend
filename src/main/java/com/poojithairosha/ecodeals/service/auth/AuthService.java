@@ -33,36 +33,47 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public AuthRespDto login(AuthLoginDto loginDto) {
+        log.info("Authenticating user with email: {}", loginDto.email());
         Authentication authenticate = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
-        log.info("User {} logged in", authenticate.getName());
+        log.info("User {} successfully authenticated", authenticate.getName());
+
         UserDetailsImpl userDetails = userRepository.findByEmail(authenticate.getName())
                 .map(UserDetailsImpl::new)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.error("User not found for email: {}", authenticate.getName());
+                    return new UsernameNotFoundException("User not found");
+                });
 
         return getAuthRespDto(userDetails);
     }
 
     public AuthRespDto register(UserReqDto userReqDto) {
+        log.info("Registering user with email: {}", userReqDto.email());
         User user = UserMapper.toEntity(userReqDto, passwordEncoder.encode(userReqDto.password()));
-        userRoleRepository.findByName("User").ifPresent(user::setRole);
-        User savedUser = userRepository.save(user);
-        UserDetailsImpl userDetails = new UserDetailsImpl(savedUser);
+        userRoleRepository.findByName("User").ifPresentOrElse(user::setRole, () -> log.warn("Default role 'User' not found. User {} will have no role assigned.", userReqDto.email()));
 
+        User savedUser = userRepository.save(user);
+        log.info("User registered successfully with email: {}", savedUser.getEmail());
+
+        UserDetailsImpl userDetails = new UserDetailsImpl(savedUser);
         return getAuthRespDto(userDetails);
     }
 
     private AuthRespDto getAuthRespDto(UserDetailsImpl userDetails) {
         try {
+            log.info("Generating JWT token for user: {}", userDetails.getUsername());
             String token = jwtTokenUtil.generateToken(userDetails);
+            log.info("Token generated successfully for user: {}", userDetails.getUsername());
+
             return AuthRespDto.builder()
                     .email(userDetails.getUsername())
                     .token(token)
                     .role(userDetails.getAuthorities().stream().findFirst().get().getAuthority())
                     .build();
         } catch (IOException e) {
-            log.error("Error occurred while generating token", e);
+            log.error("Error occurred while generating token for user: {}", userDetails.getUsername(), e);
             throw new RuntimeException("Error occurred while generating token");
         }
     }
