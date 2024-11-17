@@ -6,7 +6,7 @@ public interface ApiUrlConstants {
         String API_V_1 = "/api/v1";
         String BY_ID = "/{id}";
         String SEARCH = "/search";
-        String PAGED = "/paged";
+        String PAGINATED = "/paginated";
         String BATCH = "/batch";
     }
 

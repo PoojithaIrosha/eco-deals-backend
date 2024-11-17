@@ -47,4 +47,15 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ProblemDetail handleUserNotFoundException(UserNotFoundException e, WebRequest request) {
+        log.info("UserNotFoundException: {}", e.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("User not found");
+        problemDetail.setInstance(URI.create(request.getContextPath()));
+        problemDetail.setProperty("timestamp", Calendar.getInstance().getTime());
+        problemDetail.setProperty("errorType", "USER_NOT_FOUND");
+        return problemDetail;
+    }
+
 }

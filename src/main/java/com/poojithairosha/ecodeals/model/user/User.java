@@ -29,4 +29,5 @@ public class User extends Auditable {
     private UserRole role;
 
     private boolean active = true;
+    private boolean deleted = false;
 }
